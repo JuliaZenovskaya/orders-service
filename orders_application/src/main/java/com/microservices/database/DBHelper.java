@@ -125,4 +125,24 @@ public class DBHelper {
         log.info("startFormingOrder");
         startFormingOrder(itemId, price);
     }
+
+    public void decreaseItemAmount(int id) throws SQLException {
+        getConnection();
+        Statement statement = connection.createStatement();
+        String sql = "SELECT * FROM " + TABLE_NAME + " WHERE " + ID + " = " + id;
+        ResultSet rs = statement.executeQuery(sql);
+        String sql2;
+        while (rs.next()) {
+            if (rs.getInt(AMOUNT) == 1){
+                sql2 = "DELETE FROM " + TABLE_NAME + " WHERE " + ID + " = " + id;
+            } else {
+                int newamount = rs.getInt(AMOUNT);
+                newamount -= 1;
+                sql2 = "UPDATE " + TABLE_NAME + " SET " + AMOUNT + "=" + newamount + " WHERE " + ID + "=" + id;
+            }
+            statement.execute(sql2);
+            break;
+        }
+        connection.close();
+    }
 }

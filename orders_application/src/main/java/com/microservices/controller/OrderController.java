@@ -23,6 +23,16 @@ public class OrderController {
         this.orderService = orderService;
     }
 
+    @PutMapping(value = "{id}/items")
+    public void decreaseItemAmount(@PathVariable int id) {
+        try {
+            orderService.decreaseItemAmount(id);
+            log.info("Decreased");
+        } catch (SQLException e) {
+            log.error(e.toString());
+        }
+    }
+
     @GetMapping
     public ArrayList<Order> getAllOrders() throws SQLException {
         return orderService.getAllOrders();

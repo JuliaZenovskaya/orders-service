@@ -38,4 +38,9 @@ public class OrderServiceImpl implements OrderService {
                                   int house, int corp, int flat) throws SQLException {
         dbHelper.addInfoToOrder(orderId, email, country, city, street, house, corp, flat);
     }
+
+    @Override
+    public void decreaseItemAmount(int id) throws SQLException {
+        dbHelper.decreaseItemAmount(id);
+    }
 }

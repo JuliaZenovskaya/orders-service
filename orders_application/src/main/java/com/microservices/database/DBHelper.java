@@ -137,8 +137,12 @@ public class DBHelper {
                 sql2 = "DELETE FROM " + TABLE_NAME + " WHERE " + ID + " = " + id;
             } else {
                 int newamount = rs.getInt(AMOUNT);
+                float newprice = rs.getFloat(PRICE);
+                newprice = newprice/newamount;
                 newamount -= 1;
-                sql2 = "UPDATE " + TABLE_NAME + " SET " + AMOUNT + "=" + newamount + " WHERE " + ID + "=" + id;
+                newprice *= newamount;
+                sql2 = "UPDATE " + TABLE_NAME + " SET " + AMOUNT + "=" + newamount + ", " + PRICE + " = " + newprice +
+                        " WHERE " + ID + "=" + id;
             }
             statement.execute(sql2);
             break;

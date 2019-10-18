@@ -1,6 +1,7 @@
 package com.microservices.database;
 
 import com.microservices.model.AddItem;
+import com.microservices.model.Item;
 import com.microservices.model.Order;
 import com.mysql.fabric.jdbc.FabricMySQLDriver;
 import org.apache.log4j.Logger;
@@ -77,8 +78,10 @@ public class DBHelper {
 
         if (rs != null) {
             while (rs.next()){
-                Order order = new Order(rs.getInt(ID), rs.getString(STATUS), rs.getInt(ITEM), rs.getInt(AMOUNT),
-                        rs.getFloat(PRICE), rs.getString(EMAIL), rs.getString(COUNTRY), rs.getString(CITY),
+                ArrayList<Item> items = new ArrayList<>();
+                Item item = new Item(rs.getInt(ITEM), rs.getInt(AMOUNT), rs.getFloat(PRICE));
+                items.add(item);
+                Order order = new Order(rs.getInt(ID), rs.getString(STATUS), items, rs.getString(EMAIL), rs.getString(COUNTRY), rs.getString(CITY),
                         rs.getInt(HOUSE), rs.getString(STREET), rs.getInt(CORP), rs.getInt(FLAT));
                 orders.add(order);
             }

@@ -38,7 +38,7 @@ public class OrderController {
         return orderService.getAllOrders();
     }
 
-    @PostMapping
+    @PostMapping (value = "item")
     @ResponseStatus(HttpStatus.CREATED)
     public void addItemToOrder(@Valid @RequestBody AddItem addItem){
         try {
@@ -60,19 +60,19 @@ public class OrderController {
         }
     }
 
-    @GetMapping(value = "/id/{id}")
-    public Order getOrderById (@PathVariable int id) {
+    @GetMapping(value = "{order_id}")
+    public Order getOrderById (@PathVariable int order_id) {
         try {
-            Order temp = orderService.getOrderById(id);
-            log.info("Order with id = " + id + " was found: " + temp.toString());
+            Order temp = orderService.getOrderById(order_id);
+            log.info("Order with id = " + order_id + " was found: " + temp.toString());
             return temp;
         } catch (SQLException e) {
-            log.error("Order with id = " + id + "was not found: " + e.toString());
+            log.error("Order with id = " + order_id + "was not found: " + e.toString());
             return null;
         }
     }
 
-    @PutMapping(value = "{id}/change/{status}")
+    @PutMapping(value = "{id}/status/{status}")
     public void changeStatus(@PathVariable int id, @PathVariable String status) {
         try {
             orderService.changeOrderStatus(id, status);

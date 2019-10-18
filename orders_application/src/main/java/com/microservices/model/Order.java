@@ -5,6 +5,7 @@ import lombok.Setter;
 import lombok.ToString;
 
 import javax.validation.constraints.NotNull;
+import java.util.ArrayList;
 
 @Getter
 @Setter
@@ -16,14 +17,13 @@ public class Order {
     @NotNull
     public String status;
 
-    @NotNull
-    public int itemID;
+    ArrayList<Item> items;
 
     @NotNull
-    public int itemAmount;
+    public float totalCost;
 
     @NotNull
-    public float price;
+    public int totalAmount;
 
     @NotNull
     public String email;
@@ -45,15 +45,12 @@ public class Order {
     @NotNull
     public int flat;
 
-    public Order(@NotNull int id, @NotNull String status, @NotNull int itemID,
-                 @NotNull int itemAmount, @NotNull float price, @NotNull String email,
+    public Order(@NotNull int id, @NotNull String status, ArrayList<Item> items, @NotNull String email,
                  @NotNull String country, @NotNull String city, @NotNull int house,
                  @NotNull String street, int corp, @NotNull int flat) {
         this.id = id;
         this.status = status;
-        this.itemID = itemID;
-        this.itemAmount = itemAmount;
-        this.price = price;
+        this.items = items;
         this.email = email;
         this.country = country;
         this.city = city;
@@ -61,5 +58,7 @@ public class Order {
         this.house = house;
         this.corp = corp;
         this.flat = flat;
+        this.totalCost = items.get(0).price;
+        this.totalAmount = items.get(0).amount;
     }
 }

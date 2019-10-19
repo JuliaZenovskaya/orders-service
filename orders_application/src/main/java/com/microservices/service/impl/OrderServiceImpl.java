@@ -1,9 +1,11 @@
 package com.microservices.service.impl;
 
-import com.microservices.model.AddItem;
 import com.microservices.model.Order;
 import com.microservices.database.DBHelper;
+import com.microservices.model.OrderDTO;
+import com.microservices.model.OrderStatus;
 import com.microservices.service.OrderService;
+import jdk.internal.jline.internal.Nullable;
 import org.springframework.stereotype.Service;
 
 import java.sql.SQLException;
@@ -24,23 +26,17 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
-    public void changeOrderStatus(int id, String status) throws SQLException {
-        dbHelper.changeOrderStatus(id, status);
+    public OrderDTO changeOrderStatus(int id, OrderStatus status) throws SQLException {
+        return dbHelper.changeOrderStatus(id, status);
     }
 
     @Override
-    public void addItemToOrder(AddItem addItem) throws SQLException {
-        dbHelper.addItemToOrder(addItem);
+    public int addItemToOrder(@Nullable Integer order_id, int item_id, int item_amount, String username) throws SQLException {
+        return dbHelper.addItemToOrder(order_id, item_id, item_amount, username);
     }
 
     @Override
-    public void addAddressToOrder(int orderId, String email, String country, String city, String street,
-                                  int house, int corp, int flat) throws SQLException {
-        dbHelper.addInfoToOrder(orderId, email, country, city, street, house, corp, flat);
-    }
-
-    @Override
-    public void decreaseItemAmount(int id) throws SQLException {
-        dbHelper.decreaseItemAmount(id);
+    public void decreaseItemAmount(int order_id, int item_id, int item_amount) throws SQLException {
+        dbHelper.decreaseItemAmount(order_id, item_id, item_amount);
     }
 }

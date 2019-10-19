@@ -12,12 +12,10 @@ import java.util.ArrayList;
 @ToString
 public class Order {
     @NotNull
-    public int id;
+    public int order_id;
 
     @NotNull
-    public String status;
-
-    ArrayList<Item> items;
+    public OrderStatus status;
 
     @NotNull
     public float totalCost;
@@ -26,39 +24,16 @@ public class Order {
     public int totalAmount;
 
     @NotNull
-    public String email;
+    public String username;
 
-    @NotNull
-    public String country;
+    ArrayList<Item> items;
 
-    @NotNull
-    public String city;
-
-    @NotNull
-    public String street;
-
-    @NotNull
-    public int house;
-
-    public int corp;
-
-    @NotNull
-    public int flat;
-
-    public Order(@NotNull int id, @NotNull String status, ArrayList<Item> items, @NotNull String email,
-                 @NotNull String country, @NotNull String city, @NotNull int house,
-                 @NotNull String street, int corp, @NotNull int flat) {
-        this.id = id;
+    public Order(@NotNull int order_id, @NotNull OrderStatus status, @NotNull float totalCost, @NotNull int totalAmount, @NotNull String username, ArrayList<Item> items) {
+        this.order_id = order_id;
         this.status = status;
+        this.totalCost = totalCost;
+        this.totalAmount = totalAmount;
+        this.username = username;
         this.items = items;
-        this.email = email;
-        this.country = country;
-        this.city = city;
-        this.street = street;
-        this.house = house;
-        this.corp = corp;
-        this.flat = flat;
-        this.totalCost = items.get(0).price;
-        this.totalAmount = items.get(0).amount;
     }
 }

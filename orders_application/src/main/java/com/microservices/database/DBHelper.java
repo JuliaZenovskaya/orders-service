@@ -1,37 +1,38 @@
 package com.microservices.database;
 
-import com.microservices.model.AddItem;
+import com.microservices.controller.OrderController;
 import com.microservices.model.Item;
 import com.microservices.model.Order;
+import com.microservices.model.OrderDTO;
+import com.microservices.model.OrderStatus;
 import com.mysql.fabric.jdbc.FabricMySQLDriver;
+import jdk.internal.jline.internal.Nullable;
 import org.apache.log4j.Logger;
 
 import java.sql.*;
 import java.util.ArrayList;
 
-public class DBHelper {
-    private static final String ID = "id";
-    private static final String BD_NAME = "orders";
-    private static final String TABLE_NAME = "orderr";
-    private static final String STATUS = "orderStatus";
-    private static final String ITEM = "itemID";
-    private static final String AMOUNT = "itemAmount";
-    private static final String PRICE = "price";
-    private static final String EMAIL = "email";
-    private static final String COUNTRY = "country";
-    private static final String CITY = "city";
-    private static final String STREET = "street";
-    private static final String HOUSE = "house";
-    private static final String CORP = "corp";
-    private static final String FLAT = "flat";
 
+public class DBHelper {
+    private static final String ID = "order_id";
+    private static final String BD_NAME = "orders";
+    private static final String TABLE_ORDER_INFO = "order_info";
+    private static final String TABLE_ORDER_ITEM = "order_item";
+    private static final String STATUS = "order_status";
+    private static final String TOTAL_AMOUNT = "total_amount";
+    private static final String TOTAL_PRICE = "total_cost";
+    private static final String USERNAME = "username";
+    private static final String ITEM_ID = "item_id";
+    private static final String ITEM_NAME = "item_name";
+    private static final String ITEM_AMOUNT = "item_amount";
+    private static final String ITEM_PRICE = "item_price";
 
     private static final String URL = "jdbc:mysql://localhost:3306/" + BD_NAME;
     private static final String USER = "root";
     private static final String PASSWORD = "1234";
     private static Connection connection;
 
-    public void getConnection() {
+    private void getConnection() {
         try {
             Driver driver = new FabricMySQLDriver();
             DriverManager.registerDriver(driver);
@@ -41,48 +42,40 @@ public class DBHelper {
         }
     }
 
-    private void startFormingOrder(int itemID, float price) throws SQLException {
-        Statement statement = connection.createStatement();
-        String sql = "INSERT INTO " + TABLE_NAME + " (" + STATUS + "," + ITEM + "," + AMOUNT + ","+ PRICE +
-                ") VALUES ('Collecting', " + itemID + ", 1," + price + ")";
-        statement.execute(sql);
-        final Logger log = Logger.getLogger(DBHelper.class);
-        log.info("HERE");
-        connection.close();
-    }
-
-    public void addInfoToOrder(int orderId, String email, String country, String city, String street,
-                               int house, int corp, int flat) throws SQLException {
+    public OrderDTO changeOrderStatus (int id, OrderStatus status) throws SQLException {
         getConnection();
         Statement statement = connection.createStatement();
-        String sql = "UPDATE " + TABLE_NAME + " SET " + EMAIL + " = '" + email + "'," + COUNTRY + "='" + country
-                + "'," + CITY + "='" + city + "'," + HOUSE + "=" + house + "," + STREET + "='" + street + "'," +
-                CORP + "=" + corp + "," + FLAT + "=" + flat + " WHERE " + ID + " = " + orderId + ";";
+        String sql = "UPDATE " + TABLE_ORDER_INFO + " SET " + STATUS + "='" + status + "' WHERE " + ID + "=" + id + ";";
         statement.execute(sql);
         connection.close();
-    }
-
-    public void changeOrderStatus (int id, String status) throws SQLException {
-        getConnection();
-        Statement statement = connection.createStatement();
-        String sql = "UPDATE " + TABLE_NAME + " SET " + STATUS + "=" + status + " WHERE " + ID + "=" + id + ";";
-        statement.execute(sql);
-        connection.close();
+        return new OrderDTO(id, status);
     }
 
     private ArrayList<Order> getOrder(String sql) throws SQLException {
         getConnection();
         Statement statement = connection.createStatement();
-        ResultSet rs = statement.executeQuery(sql);
-        ArrayList<Order> orders= new ArrayList<>();
-
-        if (rs != null) {
-            while (rs.next()){
+        ResultSet resultSet = statement.executeQuery(sql);
+        ArrayList<Order> orders = new ArrayList<>();
+        if (resultSet != null){
+            while (resultSet.next()){
                 ArrayList<Item> items = new ArrayList<>();
-                Item item = new Item(rs.getInt(ITEM), rs.getInt(AMOUNT), rs.getFloat(PRICE));
-                items.add(item);
-                Order order = new Order(rs.getInt(ID), rs.getString(STATUS), items, rs.getString(EMAIL), rs.getString(COUNTRY), rs.getString(CITY),
-                        rs.getInt(HOUSE), rs.getString(STREET), rs.getInt(CORP), rs.getInt(FLAT));
+                int id = resultSet.getInt(ID);
+                OrderStatus mStatus = OrderStatus.valueOf(resultSet.getString(STATUS));
+                float mPrice = resultSet.getFloat(TOTAL_PRICE);
+                int mAmount = resultSet.getInt(TOTAL_AMOUNT);
+                String mUser = resultSet.getString(USERNAME);
+                sql = "SELECT " + ITEM_ID + ", " + ITEM_NAME + ", " + ITEM_AMOUNT + ", " + ITEM_PRICE + " FROM "
+                        + TABLE_ORDER_ITEM + " WHERE " + ID + " = " + id;
+                Statement another = connection.createStatement();
+                ResultSet rs = another.executeQuery(sql);
+                if (rs != null) {
+                    while (rs.next()){
+                        Item item = new Item(rs.getInt(ITEM_ID), rs.getString(ITEM_NAME), rs.getInt(ITEM_AMOUNT),
+                                rs.getFloat(ITEM_PRICE));
+                        items.add(item);
+                    }
+                }
+                Order order = new Order(id, mStatus, mPrice, mAmount, mUser, items);
                 orders.add(order);
             }
         }
@@ -91,65 +84,106 @@ public class DBHelper {
     }
 
     public ArrayList<Order> getAllOrders() throws SQLException {
-        String sql = "SELECT * FROM " + TABLE_NAME;
+        String sql = "SELECT * FROM " + TABLE_ORDER_INFO;
         return getOrder(sql);
     }
 
-    public Order getOrderById(int id) throws SQLException {
-        String sql = "SELECT * FROM " + TABLE_NAME + " WHERE " + ID + "=" + id + ";";
+    public Order getOrderById(int order_id) throws SQLException {
+        String sql = "SELECT * FROM " + TABLE_ORDER_INFO + " WHERE " + ID + " = " + order_id;
         return getOrder(sql).get(0);
     }
 
-    private void addOneMoreItem(int orderId, int itemId, int amount, float price) throws SQLException {
+    private int createNewOrder(int item_id, int item_amount, String username) throws SQLException {
+        getConnection();
+        int id = 0;
         Statement statement = connection.createStatement();
-        float newPrice = price/amount;
-        int newAmount = amount + 1;
-        newPrice*=newAmount;
-        String sql = "UPDATE " + TABLE_NAME + " SET " + AMOUNT + " = " + newAmount + ", " + PRICE + " = " + newPrice +
-                " WHERE " + ID + "=" + orderId + " || " + ITEM + "=" + itemId + ";";
+        String sql = "INSERT INTO " + TABLE_ORDER_INFO + " (" + STATUS + "," + TOTAL_PRICE + "," + TOTAL_AMOUNT + ","
+                + USERNAME + ") VALUES ('Collecting', 0, " + item_amount + ",'"  + username + "')";
+        statement.execute(sql);
+        sql = "SELECT * FROM " + TABLE_ORDER_INFO + " WHERE " + ID + " = (SELECT MAX(" + ID + " ) FROM "
+                + TABLE_ORDER_INFO + ")";
+        ResultSet rs = statement.executeQuery(sql);
+        if (rs != null) {
+            rs.absolute(1);
+            id = rs.getInt(ID);
+            sql = "INSERT INTO " + TABLE_ORDER_ITEM + " (" + ID + "," + ITEM_ID + "," + ITEM_AMOUNT + ","
+                        + ITEM_PRICE + ") VALUES (" + id + ", " + item_id + "," + item_amount + ", 0)";
+            statement.execute(sql);
+            }
+        connection.close();
+        return id;
+    }
+
+    private void addOneMoreItem(int order_id, int item_id, int item_amount) throws SQLException {
+        final Logger log = Logger.getLogger(OrderController.class);
+        getConnection();
+        Statement statement = connection.createStatement();
+        log.info("1");
+        String sql = "SELECT * FROM " + TABLE_ORDER_ITEM + " WHERE " + ID + " = " + order_id + " AND " +ITEM_ID + " = "
+                + item_id;
+        ResultSet rs = statement.executeQuery(sql);
+        if (rs.next()) {
+           int current_amount = rs.getInt(ITEM_AMOUNT);
+           float current_price = rs.getFloat(ITEM_PRICE);
+           float new_price = current_price / current_amount;
+           int new_amount = current_amount + item_amount;
+           new_price *= new_amount;
+           sql = "UPDATE " + TABLE_ORDER_ITEM + " SET " + ITEM_AMOUNT + " = " + new_amount + ", " + ITEM_PRICE
+                   + " = " + new_price + " WHERE " + ID + "=" + order_id + " AND " + ITEM_ID + "=" + item_id + ";";
+           statement.execute(sql);
+        } else {
+            log.info("j");
+            sql = "INSERT INTO " + TABLE_ORDER_ITEM + " (" + ID + "," + ITEM_ID + "," + ITEM_AMOUNT + ","
+                    + ITEM_PRICE + ") VALUES (" + order_id + ", " + item_id + ","  + item_amount + ", 0)";
+            statement.execute(sql);
+        }
+        connection.close();
+        updateOrderInfo(order_id);
+    }
+
+    private void updateOrderInfo(int order_id) throws SQLException {
+        getConnection();
+        Statement statement = connection.createStatement();
+        String sql = "SELECT * FROM " + TABLE_ORDER_ITEM + " WHERE " + ID + " = " + order_id;
+        ResultSet rs = statement.executeQuery(sql);
+        int new_total_amount = 0;
+        float new_total_price = 0;
+        while (rs.next()){
+            new_total_amount += rs.getInt(ITEM_AMOUNT);
+            new_total_price += rs.getFloat(ITEM_PRICE);
+        }
+        sql = "UPDATE " + TABLE_ORDER_INFO + " SET " + TOTAL_AMOUNT + " = " + new_total_amount + ", " + TOTAL_PRICE
+                + " = " + new_total_price + " WHERE " + ID + "=" + order_id;
         statement.execute(sql);
         connection.close();
     }
 
-
-    public void addItemToOrder(AddItem addItem) throws SQLException {
-        getConnection();
-        final Logger log = Logger.getLogger(DBHelper.class);
-        int itemId = addItem.id;
-        float price = addItem.price;
-        Statement statement = connection.createStatement();
-        String sql = "SELECT * FROM " + TABLE_NAME + " WHERE " + ITEM + " = " + itemId + " && " + STATUS + "= 'Collecting';";
-        ResultSet rs = statement.executeQuery(sql);
-        while (rs.next()) {
-                log.info("START");
-                addOneMoreItem(rs.getInt(ID), itemId, rs.getInt(AMOUNT), rs.getFloat(PRICE));
-                break;
-            }
-        log.info("startFormingOrder");
-        startFormingOrder(itemId, price);
+    public int addItemToOrder(@Nullable Integer order_id, int item_id, int item_amount, String username) throws SQLException {
+        if (order_id == null) {
+            return createNewOrder(item_id,item_amount,username);
+        } else {
+            addOneMoreItem(order_id, item_id, item_amount);
+            return order_id;
+        }
     }
 
-    public void decreaseItemAmount(int id) throws SQLException {
+    public void decreaseItemAmount(int order_id, int item_id, int item_amount) throws SQLException {
         getConnection();
         Statement statement = connection.createStatement();
-        String sql = "SELECT * FROM " + TABLE_NAME + " WHERE " + ID + " = " + id;
+        String sql = "SELECT * FROM " + TABLE_ORDER_ITEM + " WHERE " + ID + " = " + order_id + " && " +ITEM_ID + " = "
+                + item_id;
         ResultSet rs = statement.executeQuery(sql);
-        String sql2;
-        while (rs.next()) {
-            if (rs.getInt(AMOUNT) == 1){
-                sql2 = "DELETE FROM " + TABLE_NAME + " WHERE " + ID + " = " + id;
-            } else {
-                int newamount = rs.getInt(AMOUNT);
-                float newprice = rs.getFloat(PRICE);
-                newprice = newprice/newamount;
-                newamount -= 1;
-                newprice *= newamount;
-                sql2 = "UPDATE " + TABLE_NAME + " SET " + AMOUNT + "=" + newamount + ", " + PRICE + " = " + newprice +
-                        " WHERE " + ID + "=" + id;
+        if (rs != null) {
+            while (rs.next()){
+                float new_price = rs.getFloat(ITEM_PRICE)/rs.getInt(ITEM_AMOUNT);
+                int new_amount = rs.getInt(ITEM_AMOUNT) - item_amount;
+                new_price *= new_amount;
+                sql = "UPDATE " + TABLE_ORDER_ITEM + " SET " + ITEM_AMOUNT + " = " + new_amount + ", " + ITEM_PRICE
+                        + " = " + new_price + " WHERE " + ID + "=" + order_id + " AND " + ITEM_ID + "=" + item_id + ";";
+                statement.execute(sql);
             }
-            statement.execute(sql2);
-            break;
         }
         connection.close();
+        updateOrderInfo(order_id);
     }
 }

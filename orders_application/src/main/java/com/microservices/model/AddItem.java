@@ -14,10 +14,8 @@ public class AddItem {
     public int id;
 
     @NotNull
-    public float price;
+    public int amount;
 
-    public AddItem(@NotNull int id, @NotNull float price) {
-        this.id = id;
-        this.price = price;
-    }
+    @NotNull
+    public String username;
 }

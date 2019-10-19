@@ -1,14 +1,15 @@
 package com.microservices.controller;
 
-import com.microservices.model.AddItem;
 import com.microservices.model.Order;
+import com.microservices.model.OrderDTO;
+import com.microservices.model.OrderStatus;
 import com.microservices.service.OrderService;
+import jdk.internal.jline.internal.Nullable;
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
-import javax.validation.Valid;
 import java.sql.SQLException;
 import java.util.ArrayList;
 
@@ -24,9 +25,9 @@ public class OrderController {
     }
 
     @PutMapping(value = "{id}/items")
-    public void decreaseItemAmount(@PathVariable int id) {
+    public void decreaseItemAmount(@PathVariable int id, @RequestParam int item_id, @RequestParam int amount) {
         try {
-            orderService.decreaseItemAmount(id);
+            orderService.decreaseItemAmount(id, item_id, amount);
             log.info("Decreased");
         } catch (SQLException e) {
             log.error(e.toString());
@@ -40,23 +41,14 @@ public class OrderController {
 
     @PostMapping (value = "item")
     @ResponseStatus(HttpStatus.CREATED)
-    public void addItemToOrder(@Valid @RequestBody AddItem addItem){
+    public int addItemToOrder(@Nullable Integer order_id, @RequestParam int item_id, @RequestParam int amount,
+                              @RequestParam String username){
         try {
-            orderService.addItemToOrder(addItem);
-            log.info("Item with id = " + addItem.id + " added to cart");
+            return orderService.addItemToOrder(order_id, item_id, amount, username);
+            //log.info("Item with id = " + item_id + " added to cart");
         } catch (SQLException e) {
-            log.error("Error adding product with id = " + addItem.id + " to cart: " + e.toString());
-        }
-    }
-
-    @PutMapping(value = "{orderId}")
-    public void addAdressToOrder(@PathVariable int orderId, String email, String country, String city, String street,
-                                 int house, int corp, int flat){
-        try {
-            orderService.addAddressToOrder(orderId, email, country, city, street, house, corp, flat);
-            log.info("To order with id = " + orderId + " was added");
-        } catch (SQLException e) {
-            log.error("To order with id = " + orderId + "was not added address: " + e.toString());
+            log.error("Error adding product with id = " + item_id + " to cart: " + e.toString());
+            return 0;
         }
     }
 
@@ -73,12 +65,13 @@ public class OrderController {
     }
 
     @PutMapping(value = "{id}/status/{status}")
-    public void changeStatus(@PathVariable int id, @PathVariable String status) {
+    public OrderDTO changeStatus(@PathVariable int id, @PathVariable String status) {
         try {
-            orderService.changeOrderStatus(id, status);
-            log.info("Order status replaced by " + status);
+            return orderService.changeOrderStatus(id, OrderStatus.valueOf(status));
+            //log.info("Order status replaced by " + status);
         } catch (SQLException e) {
             log.error("Error changing order status: " + e.toString());
+            return null;
         }
     }
 }

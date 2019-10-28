@@ -65,9 +65,9 @@ public class OrderController {
     }
 
     @PutMapping(value = "{id}/status/{status}")
-    public OrderDTO changeStatus(@PathVariable int id, @PathVariable String status) {
+    public OrderDTO changeStatus(@PathVariable int id, @PathVariable OrderStatus status) {
         try {
-            return orderService.changeOrderStatus(id, OrderStatus.valueOf(status));
+            return orderService.changeOrderStatus(id, status);
             //log.info("Order status replaced by " + status);
         } catch (SQLException e) {
             log.error("Error changing order status: " + e.toString());

@@ -39,11 +39,12 @@ public class OrderController {
         return orderService.getAllOrders();
     }
 
-    @PostMapping (value = "item")
+    @PostMapping (value = "{order_id}/item")
     @ResponseStatus(HttpStatus.CREATED)
-    public int addItemToOrder(@Nullable Integer order_id, @RequestParam int item_id, @RequestParam int amount,
+    public int addItemToOrder(@PathVariable String order_id, @RequestParam int item_id, @RequestParam int amount,
                               @RequestParam String username){
         try {
+            order_id = Integer.toString(orderService.addItemToOrder(order_id, item_id, amount, username));
             return orderService.addItemToOrder(order_id, item_id, amount, username);
             //log.info("Item with id = " + item_id + " added to cart");
         } catch (SQLException e) {

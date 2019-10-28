@@ -158,12 +158,12 @@ public class DBHelper {
         connection.close();
     }
 
-    public int addItemToOrder(@Nullable Integer order_id, int item_id, int item_amount, String username) throws SQLException {
-        if (order_id == null) {
+    public int addItemToOrder(String order_id, int item_id, int item_amount, String username) throws SQLException {
+        if (order_id.equals("null")) {
             return createNewOrder(item_id,item_amount,username);
         } else {
-            addOneMoreItem(order_id, item_id, item_amount);
-            return order_id;
+            addOneMoreItem(Integer.parseInt(order_id), item_id, item_amount);
+            return Integer.parseInt(order_id);
         }
     }
 

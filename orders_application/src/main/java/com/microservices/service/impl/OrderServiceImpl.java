@@ -31,7 +31,7 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
-    public int addItemToOrder(@Nullable Integer order_id, int item_id, int item_amount, String username) throws SQLException {
+    public int addItemToOrder(String order_id, int item_id, int item_amount, String username) throws SQLException {
         return dbHelper.addItemToOrder(order_id, item_id, item_amount, username);
     }
 

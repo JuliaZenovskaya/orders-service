@@ -1,10 +1,8 @@
 package com.microservices.service;
 
-import com.microservices.model.AddItem;
 import com.microservices.model.Order;
 import com.microservices.model.OrderDTO;
 import com.microservices.model.OrderStatus;
-import jdk.internal.jline.internal.Nullable;
 
 import java.sql.SQLException;
 import java.util.ArrayList;

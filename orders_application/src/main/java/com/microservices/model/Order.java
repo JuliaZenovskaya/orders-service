@@ -12,21 +12,21 @@ import java.util.ArrayList;
 @ToString
 public class Order {
     @NotNull
-    public int order_id;
+    private int order_id;
 
     @NotNull
-    public OrderStatus status;
+    private OrderStatus status;
 
     @NotNull
-    public float totalCost;
+    private float totalCost;
 
     @NotNull
-    public int totalAmount;
+    private int totalAmount;
 
     @NotNull
-    public String username;
+    private String username;
 
-    ArrayList<Item> items;
+    private ArrayList<Item> items;
 
     public Order(@NotNull int order_id, @NotNull OrderStatus status, @NotNull float totalCost, @NotNull int totalAmount, @NotNull String username, ArrayList<Item> items) {
         this.order_id = order_id;

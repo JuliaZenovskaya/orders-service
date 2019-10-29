@@ -11,16 +11,16 @@ import javax.validation.constraints.NotNull;
 @ToString
 public class Item {
     @NotNull
-    public int id;
+    private int id;
 
     @NotNull
-    public String name;
+    private String name;
 
     @NotNull
-    public int amount;
+    private int amount;
 
     @NotNull
-    public float price;
+    private float price;
 
     public Item(@NotNull int id, @NotNull String name, @NotNull int amount, @NotNull float price) {
         this.id = id;

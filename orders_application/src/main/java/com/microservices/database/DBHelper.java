@@ -6,7 +6,6 @@ import com.microservices.model.Order;
 import com.microservices.model.OrderDTO;
 import com.microservices.model.OrderStatus;
 import com.mysql.fabric.jdbc.FabricMySQLDriver;
-import jdk.internal.jline.internal.Nullable;
 import org.apache.log4j.Logger;
 
 import java.sql.*;
@@ -123,6 +122,7 @@ public class DBHelper {
                 + item_id;
         ResultSet rs = statement.executeQuery(sql);
         if (rs.next()) {
+            Statement statement1 = connection.createStatement();
            int current_amount = rs.getInt(ITEM_AMOUNT);
            float current_price = rs.getFloat(ITEM_PRICE);
            float new_price = current_price / current_amount;
@@ -130,12 +130,13 @@ public class DBHelper {
            new_price *= new_amount;
            sql = "UPDATE " + TABLE_ORDER_ITEM + " SET " + ITEM_AMOUNT + " = " + new_amount + ", " + ITEM_PRICE
                    + " = " + new_price + " WHERE " + ID + "=" + order_id + " AND " + ITEM_ID + "=" + item_id + ";";
-           statement.execute(sql);
+           statement1.execute(sql);
         } else {
+            Statement statement1 = connection.createStatement();
             log.info("j");
             sql = "INSERT INTO " + TABLE_ORDER_ITEM + " (" + ID + "," + ITEM_ID + "," + ITEM_AMOUNT + ","
                     + ITEM_PRICE + ") VALUES (" + order_id + ", " + item_id + ","  + item_amount + ", 0)";
-            statement.execute(sql);
+            statement1.execute(sql);
         }
         connection.close();
         updateOrderInfo(order_id);
@@ -169,21 +170,45 @@ public class DBHelper {
 
     public void decreaseItemAmount(int order_id, int item_id, int item_amount) throws SQLException {
         getConnection();
+        final Logger log = Logger.getLogger(DBHelper.class);
         Statement statement = connection.createStatement();
         String sql = "SELECT * FROM " + TABLE_ORDER_ITEM + " WHERE " + ID + " = " + order_id + " && " +ITEM_ID + " = "
                 + item_id;
         ResultSet rs = statement.executeQuery(sql);
         if (rs != null) {
             while (rs.next()){
-                float new_price = rs.getFloat(ITEM_PRICE)/rs.getInt(ITEM_AMOUNT);
-                int new_amount = rs.getInt(ITEM_AMOUNT) - item_amount;
-                new_price *= new_amount;
-                sql = "UPDATE " + TABLE_ORDER_ITEM + " SET " + ITEM_AMOUNT + " = " + new_amount + ", " + ITEM_PRICE
-                        + " = " + new_price + " WHERE " + ID + "=" + order_id + " AND " + ITEM_ID + "=" + item_id + ";";
-                statement.execute(sql);
+                if (rs.getInt(ITEM_AMOUNT) > item_amount) {
+                    Statement statement1 = connection.createStatement();
+                    float new_price = rs.getFloat(ITEM_PRICE) / rs.getInt(ITEM_AMOUNT);
+                    int new_amount = rs.getInt(ITEM_AMOUNT) - item_amount;
+                    new_price *= new_amount;
+                    sql = "UPDATE " + TABLE_ORDER_ITEM + " SET " + ITEM_AMOUNT + " = " + new_amount + ", " + ITEM_PRICE
+                            + " = " + new_price + " WHERE " + ID + "=" + order_id + " AND " + ITEM_ID + "=" + item_id + ";";
+                    statement1.execute(sql);
+                } else {
+                    if (rs.getInt(ITEM_AMOUNT) == item_amount) {
+                        Statement statement1 = connection.createStatement();
+                        sql = "DELETE FROM " + TABLE_ORDER_ITEM + " WHERE " + ID + "=" + order_id + " AND " + ITEM_ID + "=" + item_id + ";";
+                        statement1.execute(sql);
+                    }
+                }
+            }
+            connection.close();
+            updateOrderInfo(order_id);
+            getConnection();
+            Statement statement2 = connection.createStatement();
+            sql = "SELECT * FROM " + TABLE_ORDER_ITEM + " WHERE " + ID + " = " + order_id + " AND " +ITEM_ID + " = "
+                    + item_id;
+            ResultSet rs2 = statement2.executeQuery(sql);
+            Statement statement3 = connection.createStatement();
+            if (rs2 != null) {
+                if (!rs2.next()) {
+                    log.info("hjs");
+                    sql = "DELETE FROM " + TABLE_ORDER_INFO + " WHERE " + ID + " = " + order_id;
+                    statement3.execute(sql);
+                }
+                connection.close();
             }
         }
-        connection.close();
-        updateOrderInfo(order_id);
     }
 }

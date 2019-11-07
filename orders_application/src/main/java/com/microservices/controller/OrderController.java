@@ -1,5 +1,7 @@
 package com.microservices.controller;
 
+
+import com.microservices.model.ItemDTO;
 import com.microservices.model.Order;
 import com.microservices.model.OrderDTO;
 import com.microservices.model.OrderStatus;
@@ -23,10 +25,12 @@ public class OrderController {
         this.orderService = orderService;
     }
 
+
     @PutMapping(value = "{id}/items")
     public void decreaseItemAmount(@PathVariable int id, @RequestParam int item_id, @RequestParam int amount) {
         try {
             orderService.decreaseItemAmount(id, item_id, amount);
+            orderService.send(new ItemDTO(item_id,amount));
             log.info("Decreased");
         } catch (SQLException e) {
             log.error(e.toString());
@@ -67,6 +71,12 @@ public class OrderController {
     @PutMapping(value = "{id}/status/{status}")
     public OrderDTO changeStatus(@PathVariable int id, @PathVariable OrderStatus status) {
         try {
+            if (status == OrderStatus.CANCELLED) {
+                for (ItemDTO i:
+                        orderService.getItemDTOS(id)) {
+                    orderService.send(i);
+                }
+            }
             return orderService.changeOrderStatus(id, status);
             //log.info("Order status replaced by " + status);
         } catch (SQLException e) {

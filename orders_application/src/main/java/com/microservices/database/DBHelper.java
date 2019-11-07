@@ -1,10 +1,7 @@
 package com.microservices.database;
 
 import com.microservices.controller.OrderController;
-import com.microservices.model.Item;
-import com.microservices.model.Order;
-import com.microservices.model.OrderDTO;
-import com.microservices.model.OrderStatus;
+import com.microservices.model.*;
 import com.mysql.fabric.jdbc.FabricMySQLDriver;
 import org.apache.log4j.Logger;
 
@@ -210,5 +207,20 @@ public class DBHelper {
                 connection.close();
             }
         }
+    }
+
+    public ArrayList<ItemDTO> getItemDTO(int id) throws SQLException {
+        getConnection();
+        ArrayList<ItemDTO> itemDTOS = new ArrayList<>();
+        Statement statement = connection.createStatement();
+        String sql = "SELECT * FROM " + TABLE_ORDER_ITEM + " WHERE " + ID + " = " + id;
+        ResultSet resultSet = statement.executeQuery(sql);
+        if (resultSet != null) {
+            while (resultSet.next()){
+                itemDTOS.add(new ItemDTO(resultSet.getInt(ITEM_ID), resultSet.getInt(ITEM_AMOUNT)));
+            }
+        }
+        connection.close();
+        return itemDTOS;
     }
 }

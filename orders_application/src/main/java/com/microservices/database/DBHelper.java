@@ -7,6 +7,7 @@ import org.apache.log4j.Logger;
 
 import java.sql.*;
 import java.util.ArrayList;
+import java.util.Objects;
 
 
 public class DBHelper {
@@ -114,7 +115,6 @@ public class DBHelper {
         final Logger log = Logger.getLogger(OrderController.class);
         getConnection();
         Statement statement = connection.createStatement();
-        log.info("1");
         String sql = "SELECT * FROM " + TABLE_ORDER_ITEM + " WHERE " + ID + " = " + order_id + " AND " +ITEM_ID + " = "
                 + item_id;
         ResultSet rs = statement.executeQuery(sql);
@@ -157,9 +157,12 @@ public class DBHelper {
     }
 
     public int addItemToOrder(String order_id, int item_id, int item_amount, String username) throws SQLException {
-        if (order_id.equals("null")) {
+        Logger log = Logger.getLogger(DBHelper.class);
+        if (Objects.equals(order_id, "null")) {
+            log.info("if");
             return createNewOrder(item_id,item_amount,username);
         } else {
+            log.info("else");
             addOneMoreItem(Integer.parseInt(order_id), item_id, item_amount);
             return Integer.parseInt(order_id);
         }

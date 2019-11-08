@@ -47,7 +47,7 @@ public class OrderController {
     public int addItemToOrder(@PathVariable String order_id, @RequestParam int item_id, @RequestParam int amount,
                               @RequestParam String username){
         try {
-            order_id = Integer.toString(orderService.addItemToOrder(order_id, item_id, amount, username));
+            //order_id = Integer.toString(orderService.addItemToOrder(order_id, item_id, amount, username));
             return orderService.addItemToOrder(order_id, item_id, amount, username);
             //log.info("Item with id = " + item_id + " added to cart");
         } catch (SQLException e) {

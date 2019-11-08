@@ -11,6 +11,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
+import java.io.IOException;
 import java.sql.SQLException;
 import java.util.ArrayList;
 
@@ -47,10 +48,11 @@ public class OrderController {
     public int addItemToOrder(@PathVariable String order_id, @RequestParam int item_id, @RequestParam int amount,
                               @RequestParam String username){
         try {
-            //order_id = Integer.toString(orderService.addItemToOrder(order_id, item_id, amount, username));
+            orderService.sendHttpToItem(item_id, -amount);
+
             return orderService.addItemToOrder(order_id, item_id, amount, username);
             //log.info("Item with id = " + item_id + " added to cart");
-        } catch (SQLException e) {
+        } catch (SQLException | IOException e) {
             log.error("Error adding product with id = " + item_id + " to cart: " + e.toString());
             return 0;
         }

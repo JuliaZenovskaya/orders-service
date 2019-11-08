@@ -1,15 +1,23 @@
 package com.microservices.service.impl;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.microservices.controller.OrderController;
 import com.microservices.model.*;
 import com.microservices.database.DBHelper;
 import com.microservices.service.OrderService;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
@@ -38,6 +46,7 @@ public class OrderServiceImpl implements OrderService {
             for (ItemDTO i:
                     getItemDTOS(statusDTO.order_id)) {
                 send(i);
+                //todo отправить все сразу
             }
         }
     }
@@ -71,5 +80,25 @@ public class OrderServiceImpl implements OrderService {
     @Override
     public void decreaseItemAmount(int order_id, int item_id, int item_amount) throws SQLException {
         dbHelper.decreaseItemAmount(order_id, item_id, item_amount);
+    }
+
+    @Override
+    public void sendHttpToItem(Integer item_id, Integer amount) throws IOException {
+        HttpURLConnection connection = null;
+        String query = "http://localhost:9001/warehouse/items/" + item_id + "/addition/" + amount;
+        connection = (HttpURLConnection) new URL(query).openConnection();
+        connection.setRequestMethod("PUT");
+
+        connection.setDoOutput(true);
+        connection.setUseCaches(false);
+        connection.connect();
+
+        Logger log = Logger.getLogger(OrderController.class);
+
+        if(HttpURLConnection.HTTP_OK == connection.getResponseCode()){
+            if (new BufferedReader(new InputStreamReader(connection.getInputStream())).readLine() != null) {
+                log.info("ok");
+            }
+        }
     }
 }

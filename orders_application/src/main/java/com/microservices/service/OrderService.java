@@ -2,11 +2,13 @@ package com.microservices.service;
 
 import com.microservices.model.*;
 
+import java.io.IOException;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
 public interface OrderService {
+    void sendHttpToItem(Integer id, Integer amount) throws IOException;
     List<ItemDTO> getItemDTOS(int id) throws SQLException;
     void send(ItemDTO itemDTOS);
     void consume(StatusDTO statusDTO) throws SQLException;

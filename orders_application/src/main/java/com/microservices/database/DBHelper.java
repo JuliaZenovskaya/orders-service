@@ -90,12 +90,12 @@ public class DBHelper {
         return getOrder(sql).get(0);
     }
 
-    private int createNewOrder(int item_id, int item_amount, String username) throws SQLException {
+    private int createNewOrder(int item_id, int item_amount, float item_price, String item_name, String username) throws SQLException {
         getConnection();
         int id = 0;
         Statement statement = connection.createStatement();
         String sql = "INSERT INTO " + TABLE_ORDER_INFO + " (" + STATUS + "," + TOTAL_PRICE + "," + TOTAL_AMOUNT + ","
-                + USERNAME + ") VALUES ('Collecting', 0, " + item_amount + ",'"  + username + "')";
+                + USERNAME + ") VALUES ('Collecting', " + item_price + ", " + item_amount + ",'"  + username + "')";
         statement.execute(sql);
         sql = "SELECT * FROM " + TABLE_ORDER_INFO + " WHERE " + ID + " = (SELECT MAX(" + ID + " ) FROM "
                 + TABLE_ORDER_INFO + ")";
@@ -103,15 +103,17 @@ public class DBHelper {
         if (rs != null) {
             rs.absolute(1);
             id = rs.getInt(ID);
-            sql = "INSERT INTO " + TABLE_ORDER_ITEM + " (" + ID + "," + ITEM_ID + "," + ITEM_AMOUNT + ","
-                        + ITEM_PRICE + ") VALUES (" + id + ", " + item_id + "," + item_amount + ", 0)";
+            sql = "INSERT INTO " + TABLE_ORDER_ITEM + " (" + ID + "," + ITEM_ID + "," + ITEM_NAME + "," + ITEM_AMOUNT + ","
+                        + ITEM_PRICE + ") VALUES (" + id + ", " + item_id + ",'" + item_name + "'," + item_amount + ","
+                    + item_price+ ");";
+            System.out.println(sql);
             statement.execute(sql);
             }
         connection.close();
         return id;
     }
 
-    private void addOneMoreItem(int order_id, int item_id, int item_amount) throws SQLException {
+    private void addOneMoreItem(int order_id, int item_id, int item_amount, float item_price) throws SQLException {
         final Logger log = Logger.getLogger(OrderController.class);
         getConnection();
         Statement statement = connection.createStatement();
@@ -122,9 +124,9 @@ public class DBHelper {
             Statement statement1 = connection.createStatement();
            int current_amount = rs.getInt(ITEM_AMOUNT);
            float current_price = rs.getFloat(ITEM_PRICE);
-           float new_price = current_price / current_amount;
+           float new_price = current_price + item_price;
            int new_amount = current_amount + item_amount;
-           new_price *= new_amount;
+           System.out.println(new_amount);
            sql = "UPDATE " + TABLE_ORDER_ITEM + " SET " + ITEM_AMOUNT + " = " + new_amount + ", " + ITEM_PRICE
                    + " = " + new_price + " WHERE " + ID + "=" + order_id + " AND " + ITEM_ID + "=" + item_id + ";";
            statement1.execute(sql);
@@ -156,14 +158,14 @@ public class DBHelper {
         connection.close();
     }
 
-    public int addItemToOrder(String order_id, int item_id, int item_amount, String username) throws SQLException {
+    public int addItemToOrder(String order_id, int item_id, int item_amount, float item_price, String item_name, String username) throws SQLException {
         Logger log = Logger.getLogger(DBHelper.class);
         if (Objects.equals(order_id, "null")) {
             log.info("if");
-            return createNewOrder(item_id,item_amount,username);
+            return createNewOrder(item_id,item_amount, item_price, item_name, username);
         } else {
             log.info("else");
-            addOneMoreItem(Integer.parseInt(order_id), item_id, item_amount);
+            addOneMoreItem(Integer.parseInt(order_id), item_id, item_amount, item_price);
             return Integer.parseInt(order_id);
         }
     }

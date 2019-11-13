@@ -1,10 +1,7 @@
 package com.microservices.controller;
 
 
-import com.microservices.model.ItemDTO;
-import com.microservices.model.Order;
-import com.microservices.model.OrderDTO;
-import com.microservices.model.OrderStatus;
+import com.microservices.model.*;
 import com.microservices.service.OrderService;
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -48,9 +45,12 @@ public class OrderController {
     public int addItemToOrder(@PathVariable String order_id, @RequestParam int item_id, @RequestParam int amount,
                               @RequestParam String username){
         try {
-            orderService.sendHttpToItem(item_id, -amount);
-
-            return orderService.addItemToOrder(order_id, item_id, amount, username);
+            Item item = orderService.sendHttpToItem(item_id, -amount);
+            if (item != null) {
+                return orderService.addItemToOrder(order_id, item.id, item.amount, item.price, item.name,  username);
+            } else {
+                return -1;
+            }
             //log.info("Item with id = " + item_id + " added to cart");
         } catch (SQLException | IOException e) {
             log.error("Error adding product with id = " + item_id + " to cart: " + e.toString());

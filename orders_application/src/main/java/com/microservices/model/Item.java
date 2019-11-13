@@ -1,5 +1,7 @@
 package com.microservices.model;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
@@ -10,19 +12,21 @@ import javax.validation.constraints.NotNull;
 @Setter
 @ToString
 public class Item {
-    @NotNull
-    private int id;
+    @JsonProperty("id")
+    public int id;
 
-    @NotNull
-    private String name;
+    @JsonProperty("name")
+    public String name;
 
-    @NotNull
-    private int amount;
+    @JsonProperty("amount")
+    public int amount;
 
-    @NotNull
-    private float price;
+    @JsonProperty("price")
+    public float price;
 
-    public Item(@NotNull int id, @NotNull String name, @NotNull int amount, @NotNull float price) {
+    @JsonCreator
+    public Item(@JsonProperty("id") int id, @JsonProperty("name") String name, @JsonProperty("amount") int amount,
+                @JsonProperty("price") float price) {
         this.id = id;
         this.name = name;
         this.amount = amount;

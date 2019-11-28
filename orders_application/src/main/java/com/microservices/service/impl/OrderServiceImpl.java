@@ -1,5 +1,6 @@
 package com.microservices.service.impl;
 
+import com.microservices.feign.ItemFeignClient;
 import com.microservices.model.*;
 import com.microservices.database.DBHelper;
 import com.microservices.service.OrderService;
@@ -22,12 +23,14 @@ import java.util.List;
 @Service
 @Slf4j
 public class OrderServiceImpl implements OrderService {
+    private ItemFeignClient itemFeignClient;
     private DBHelper dbHelper = new DBHelper();
     private final KafkaTemplate kafkaItemTemplateSend;
 
     @Autowired
-    public OrderServiceImpl(KafkaTemplate kafkaItemTemplateSend) {
+    public OrderServiceImpl(KafkaTemplate kafkaItemTemplateSend, ItemFeignClient itemFeignClient) {
         this.kafkaItemTemplateSend = kafkaItemTemplateSend;
+        this.itemFeignClient = itemFeignClient;
     }
 
     @Override
@@ -43,7 +46,6 @@ public class OrderServiceImpl implements OrderService {
             for (ItemDTO i:
                     getItemDTOS(statusDTO.order_id)) {
                 send(i);
-                //todo отправить все сразу
             }
         }
     }
@@ -81,19 +83,21 @@ public class OrderServiceImpl implements OrderService {
 
     @Override
     public Item sendHttpToItem(Integer item_id, Integer amount) throws IOException {
-        String url = "http://localhost:9001/warehouse/items/" + item_id + "/addition/" + amount;
-        String urlGet = "http://localhost:9001/warehouse/items/" + item_id;
-        HttpHeaders headers = new HttpHeaders();
-        headers.add("Accept", MediaType.APPLICATION_JSON_VALUE);
+        //String url = "http://localhost:9001/warehouse/items/" + item_id + "/addition/" + amount;
+        //String urlGet = "http://localhost:9001/warehouse/items/" + item_id;
+        //HttpHeaders headers = new HttpHeaders();
+        //headers.add("Accept", MediaType.APPLICATION_JSON_VALUE);
+//
+        //RestTemplate restTemplate = new RestTemplate();
+//
+        //ItemDTO itemDTO = new ItemDTO(item_id, amount);
+        //HttpEntity<ItemDTO> requestBody = new HttpEntity<>(itemDTO, headers);
+//
+        //restTemplate.exchange(url, HttpMethod.PUT, requestBody, Void.class);
+//
+        //Item item = restTemplate.getForObject(urlGet, Item.class);
 
-        RestTemplate restTemplate = new RestTemplate();
-
-        ItemDTO itemDTO = new ItemDTO(item_id, amount);
-        HttpEntity<ItemDTO> requestBody = new HttpEntity<>(itemDTO, headers);
-
-        restTemplate.exchange(url, HttpMethod.PUT, requestBody, Void.class);
-
-        Item item = restTemplate.getForObject(urlGet, Item.class);
+        Item item = itemFeignClient.changeItem(item_id, amount);
 
         if (item != null) {
             System.out.println("(Client side) Employee after update: " + item.toString());

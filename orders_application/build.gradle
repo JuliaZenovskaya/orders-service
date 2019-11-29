@@ -13,7 +13,7 @@ apply plugin: 'org.springframework.boot'
 apply plugin: 'io.spring.dependency-management'
 
 bootJar {
-    baseName = 'items-service-application'
+    baseName = 'orders-application'
     //version = applicationVersion
     enabled = true
 }

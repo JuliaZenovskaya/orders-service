@@ -6,16 +6,10 @@ import com.microservices.database.DBHelper;
 import com.microservices.service.OrderService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.MediaType;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
-import org.springframework.web.client.RestTemplate;
 
-import java.io.IOException;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
@@ -82,7 +76,7 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
-    public Item sendHttpToItem(Integer item_id, Integer amount) throws IOException {
+    public Item sendHttpToItem(Integer item_id, Integer amount) {
         //String url = "http://localhost:9001/warehouse/items/" + item_id + "/addition/" + amount;
         //String urlGet = "http://localhost:9001/warehouse/items/" + item_id;
         //HttpHeaders headers = new HttpHeaders();
